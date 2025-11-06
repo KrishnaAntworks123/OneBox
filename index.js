@@ -6,6 +6,7 @@ import { normalizeFolder, StoreEmail } from "./Utils/Emails.js";
 import { EmailCategorization } from "./Utils/EmailCategory.js";
 import { sendSlackNotification } from "./Notification/slack.js";
 import { sendWebhook } from "./Notification/webhook.js";
+import { classifyEmail } from "./Utils/classifyEmail.js";
 
 dotenv.config();
 
@@ -43,8 +44,7 @@ async function syncEmails() {
       const parsed = await simpleParser(msg.source);
 
       //  Categorize only INBOX
-      const categoryResponse = await EmailCategorization(parsed.text);
-      const predictedCategory = categoryResponse.predicted_label;
+      const predictedCategory = await classifyEmail(parsed.text);
 
       if (predictedCategory === "Interested") {
         await sendSlackNotification(parsed);
@@ -63,7 +63,7 @@ async function syncEmails() {
   console.log("Connected to IMAP");
 
   const since = new Date();
-  since.setDate(since.getDate() - 30);
+  since.setDate(since.getDate() - 1);
 
   console.log("Fetching mailbox list...");
   const mailboxes = await client.list();
@@ -90,8 +90,7 @@ async function syncEmails() {
 
         // categorize ONLY INBOX during initial sync
         if (folder === "INBOX") {
-          const categoryResponse = await EmailCategorization(parsed.text);
-          predictedCategory = categoryResponse.predicted_label;
+          const predictedCategory = await classifyEmail(parsed.text);
 
           if (predictedCategory === "Interested") {
             await sendSlackNotification(parsed);
