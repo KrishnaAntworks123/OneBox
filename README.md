@@ -44,15 +44,14 @@ PORT=5000
 NODE_ENV=development
 
 # Elasticsearch Configuration
-ELASTICSEARCH_HOST=http://localhost:9200
-ELASTICSEARCH_USER=elastic
-ELASTICSEARCH_PASSWORD=your_password
+ELASTICSEARCH_URL=http://localhost:9200
+
 
 # Email Configuration
-IMAP_USER=your_email@gmail.com
-IMAP_PASSWORD=your_app_password
-IMAP_HOST=imap.gmail.com
-IMAP_PORT=993
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+
+GEMINI_API_KEY=Your API key
 
 # Notification Services
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
