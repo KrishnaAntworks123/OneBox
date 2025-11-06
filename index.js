@@ -1,10 +1,14 @@
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
-import * as dotenv from "dotenv";
+import { setupElasticsearch, indexEmail } from "./elasticSearch/index.js";
+import dotenv from "dotenv";
+import { StoreEmail } from "./Utils/Emails.js";
+
 dotenv.config();
 
+
 async function syncEmails() {
-  // ===== IMAP Connection =====
+  // IMAP CLIENT SETUP
   const client = new ImapFlow({
     host: "imap.gmail.com",
     port: 993,
@@ -13,49 +17,57 @@ async function syncEmails() {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    logger: false,
   });
 
-  try {
-    // Connect to IMAP
-    await client.connect();
-    await client.mailboxOpen("INBOX");
+  // LISTEN FOR NEW EMAILS
+  client.on("exists", async (info) => {
+    const seq = info.count;
+    console.log("New email arrived. Seq:", seq);
 
-    // Date range (last 30 days)
-    const since = new Date();
-    since.setDate(since.getDate() - 30);
+    try {
+      // Fetch the new email
+      const msg = await client.fetchOne(seq, { source: true });
 
-    // Search IMAP for emails since date
-    const messages = (await client.search({ since })) || [];
-
-    console.log(` Found ${messages.length} emails from last 30 days`);
-    console.log(`${messages}`);
-
-    // Fetch and store
-    for await (let msg of client.fetch(messages, {
-      envelope: true,
-      source: true,
-    })) {
       const parsed = await simpleParser(msg.source);
 
-      const messageId = parsed.messageId || "";
-      const subject = parsed.subject || "";
-      const sender = parsed.from?.text || "";
-      const recipient = parsed.to?.text || "";
-      const date = parsed.date ? new Date(parsed.date) : new Date();
-      const text = parsed.text || "";
-      const html = parsed.html || "";
+      // Index the new email
+      await StoreEmail(parsed, seq, client);
 
-      console.log(` Stored: ${subject}`);
-      console.log(` Message: ${text}`);
+      console.log(`Indexed new email: ${parsed.subject}`);
+    } catch (err) {
+      console.error("Error indexing new email:", err);
     }
-  } catch (err) {
-    console.error("⚠ IMAP Sync Error:", err);
-  } finally {
-    // Clean up
-    await client.logout();
-    // await db.end();
-    console.log("✅ Sync complete and connections closed.");
+  });
+
+
+  await client.connect();
+  await client.mailboxOpen("INBOX");
+  console.log("IMAP connected & IDLE mode enabled");
+
+  const since = new Date();
+  since.setDate(since.getDate() - 1);
+
+  const messages = await client.search({ since });
+
+  for await (let msg of client.fetch(messages, { envelope: true, source: true })) {
+    const parsed = await simpleParser(msg.source);
+
+    // Index the new email
+    await StoreEmail(parsed, msg.uid, client);
+
+    console.log(`Initial sync stored: ${parsed.subject}`);
   }
+
+  console.log("Initial email sync done");
+  console.log("Waiting for new emails... (IDLE mode ON)");
+
+  // KEEP CONNECTION OPEN FOREVER
+  await new Promise(() => { });
 }
 
-syncEmails();
+// MAIN
+(async function main() {
+  await setupElasticsearch();
+  await syncEmails();
+})();

@@ -12,7 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "@elastic/elasticsearch": "^8.15.0",
+    "axios": "^1.13.2",
     "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "imapflow": "^1.1.1",
     "mailparser": "^3.9.0"
   }
