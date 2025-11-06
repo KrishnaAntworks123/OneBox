@@ -90,7 +90,7 @@ async function syncEmails() {
 
         // categorize ONLY INBOX during initial sync
         if (folder === "INBOX") {
-          const predictedCategory = await classifyEmail(parsed.text);
+          predictedCategory = await classifyEmail(parsed.text);
 
           if (predictedCategory === "Interested") {
             await sendSlackNotification(parsed);
