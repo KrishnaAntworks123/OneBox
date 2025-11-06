@@ -13,8 +13,6 @@ const ALLOWED_LABELS = [
 
 
 // Classify email content into one of 5 categories using Gemini.
-
-
 export async function classifyEmail(content) {
     try {
         const prompt = `
@@ -62,7 +60,7 @@ Rules:
         );
 
         if (!matched) {
-            console.warn("⚠️ Unknown category from Gemini:", normalized);
+            console.warn("Unknown category from Gemini:", normalized);
             return "Not Interested";
         }
 

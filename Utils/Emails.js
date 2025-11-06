@@ -7,7 +7,7 @@ export async function StoreEmail(parsed, seq, client, predictedCategory, normali
         sender: parsed.from?.text || "",
         recipient: parsed.to?.text || "",
         date: parsed.date ? new Date(parsed.date) : new Date(),
-        text: parsed.text || "",
+        text: parsed.text?.trim() || "",
         account: client.options.auth.user,
         folder: normalizedFolder,
         syncedAt: new Date(),

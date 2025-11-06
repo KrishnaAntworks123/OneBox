@@ -1,3 +1,4 @@
+import { getUniqueAccountsService } from "../elasticSearch/emailQueries.js";
 import { getEmailsByFolder, getEmailsService } from "../Service/EmailService.js";
 import { getEmailsByAccountService } from "../Service/EmailService.js";
 
@@ -52,5 +53,15 @@ export async function getEmailsByAccountController(req, res) {
             error: "Failed to fetch account emails",
             details: err.message
         });
+    }
+}
+
+export async function getUniqueAccountsController(req, res) {
+    try {
+        const accounts = await getUniqueAccountsService();
+        res.json({ success: true, accounts });
+    } catch (err) {
+        console.error("Error fetching accounts", err);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
