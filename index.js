@@ -1,7 +1,6 @@
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import dotenv from "dotenv";
-
 import { setupElasticsearch } from "./elasticSearch/index.js";
 import { normalizeFolder, StoreEmail } from "./Utils/Emails.js";
 import { EmailCategorization } from "./Utils/EmailCategory.js";
@@ -9,7 +8,6 @@ import { sendSlackNotification } from "./Notification/slack.js";
 import { sendWebhook } from "./Notification/webhook.js";
 
 dotenv.config();
-
 
 async function syncEmails() {
   // IMAP CLIENT SETUP
@@ -49,8 +47,8 @@ async function syncEmails() {
       const predictedCategory = categoryResponse.predicted_label;
 
       if (predictedCategory === "Interested") {
-        await sendSlackNotification(parsed.text);
-        await sendWebhook(parsed.text);
+        await sendSlackNotification(parsed);
+        await sendWebhook(parsed);
       }
 
       const normalizedFolder = normalizeFolder(folder);
@@ -100,8 +98,8 @@ async function syncEmails() {
         predictedCategory = categoryResponse.predicted_label;
 
         if (predictedCategory === "Interested") {
-          await sendSlackNotification(parsed.text);
-          await sendWebhook(parsed.text);
+          await sendSlackNotification(parsed);
+          await sendWebhook(parsed);
         }
       }
       const normalizedFolder = normalizeFolder(client.mailbox.path);
