@@ -3,6 +3,9 @@ import { simpleParser } from "mailparser";
 import { setupElasticsearch, indexEmail } from "./elasticSearch/index.js";
 import dotenv from "dotenv";
 import { StoreEmail } from "./Utils/Emails.js";
+import { EmailCategorization } from "./Utils/EmailCategory.js";
+import { sendSlackNotification } from "./Notification/slack.js";
+import { sendWebhook } from "./Notification/webhook.js";
 
 dotenv.config();
 
@@ -30,9 +33,15 @@ async function syncEmails() {
       const msg = await client.fetchOne(seq, { source: true });
 
       const parsed = await simpleParser(msg.source);
-
+      const categoryResponse = await EmailCategorization(parsed.text);
+      const predictedCategory = categoryResponse.predicted_label;
+      if (predictedCategory === "Interested") {
+        // Trigger Slack + Webhook
+        await sendSlackNotification(parsed.text);
+        await sendWebhook(parsed.text);
+      }
       // Index the new email
-      await StoreEmail(parsed, seq, client);
+      await StoreEmail(parsed, seq, client, predictedCategory);
 
       console.log(`Indexed new email: ${parsed.subject}`);
     } catch (err) {
@@ -53,8 +62,15 @@ async function syncEmails() {
   for await (let msg of client.fetch(messages, { envelope: true, source: true })) {
     const parsed = await simpleParser(msg.source);
 
+    const categoryResponse = await EmailCategorization(parsed.text);
+    const predictedCategory = categoryResponse.predicted_label;
+    if (predictedCategory === "Interested") {
+      // Trigger Slack + Webhook
+      await sendSlackNotification(parsed, client);
+      await sendWebhook(parsed);
+    }
     // Index the new email
-    await StoreEmail(parsed, msg.uid, client);
+    await StoreEmail(parsed, msg.uid, client, predictedCategory);
 
     console.log(`Initial sync stored: ${parsed.subject}`);
   }

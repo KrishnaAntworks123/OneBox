@@ -1,6 +1,6 @@
 import { indexEmail } from "../elasticSearch/index.js";
 
-export async function StoreEmail(parsed, seq, client) {
+export async function StoreEmail(parsed, seq, client, predictedCategory) {
     const emailDoc = {
         messageId: parsed.messageId || String(seq),
         subject: parsed.subject || "",
@@ -11,6 +11,7 @@ export async function StoreEmail(parsed, seq, client) {
         account: client.options.auth.user,
         folder: client.mailbox?.path,
         syncedAt: new Date(),
+        category: predictedCategory || "uncategorized"
     };
 
     // Index the new email
