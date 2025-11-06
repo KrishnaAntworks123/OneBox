@@ -4,7 +4,6 @@ const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 export async function sendWebhook(parsed, client) {
     try {
-        console.log(client.options.auth.user);
         await axios.post(WEBHOOK_URL, {
             type: "InterestedEmail",
             data: parsed,

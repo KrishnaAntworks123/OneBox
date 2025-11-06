@@ -25,16 +25,14 @@ export async function getEmailsByFolder(folder, from = 0, size = 50) {
 import { searchEmailsES } from "../elasticSearch/emailQueries.js";
 
 export async function getEmailsService(queryParams) {
-
     const { search, folder, account, category, page = 1, limit = 20 } = queryParams;
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     const from = (pageNum - 1) * limitNum;
 
-    // Build Elasticsearch Query Body
     const queryBody = {
-        from: from,
+        from,
         size: limitNum,
         sort: [{ date: { order: "desc" } }],
         query: {
@@ -48,21 +46,21 @@ export async function getEmailsService(queryParams) {
     // Folder filter
     if (folder) {
         queryBody.query.bool.filter.push({
-            term: { folder }
+            term: { "folder.keyword": folder }
         });
     }
 
     // Account filter
     if (account) {
         queryBody.query.bool.filter.push({
-            term: { account }
+            term: { "account.keyword": account }
         });
     }
 
     // Category filter
     if (category) {
         queryBody.query.bool.filter.push({
-            term: { category }
+            term: { "category.keyword": category }
         });
     }
 
@@ -76,11 +74,8 @@ export async function getEmailsService(queryParams) {
                 fuzziness: "AUTO"
             }
         });
-    } else {
-        queryBody.query.bool.must.push({ match_all: {} });
     }
 
-    // Execute ES Search
     const { total, emails } = await searchEmailsES(queryBody);
 
     return {
@@ -91,6 +86,8 @@ export async function getEmailsService(queryParams) {
         data: emails
     };
 }
+
+
 
 
 export async function getEmailsByAccountService(accountParam, queryParams) {

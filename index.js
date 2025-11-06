@@ -63,7 +63,7 @@ async function syncEmails() {
   console.log("Connected to IMAP");
 
   const since = new Date();
-  since.setDate(since.getDate() - 2);
+  since.setDate(since.getDate() - 30);
 
   console.log("Fetching mailbox list...");
   const mailboxes = await client.list();
@@ -77,37 +77,35 @@ async function syncEmails() {
       console.log(`Skipping unselectable folder: ${folder}`);
       continue;
     }
-    // Skip All Mail folder
-    if (folder === "[Gmail]/All Mail") {
-      console.log("Skip All Mails");
-      continue;
-    }
-    console.log(`Syncing folder: ${folder}`);
-    await client.mailboxOpen(folder);
+    if (folder === "INBOX" || folder === "[Gmail]/Sent" || folder === "[Gmail]/Drafts" || folder === "[Gmail]/Trash" || folder === "[Gmail]/Drafts") {
+      console.log(`Syncing folder: ${folder}`);
+      await client.mailboxOpen(folder);
 
-    const messages = await client.search({ since });
+      const messages = await client.search({ since });
 
-    for await (let msg of client.fetch(messages, { envelope: true, source: true })) {
-      const parsed = await simpleParser(msg.source);
+      for await (let msg of client.fetch(messages, { envelope: true, source: true })) {
+        const parsed = await simpleParser(msg.source);
 
-      let predictedCategory = "Not_Applicable";
+        let predictedCategory = "Not_Applicable";
 
-      // categorize ONLY INBOX during initial sync
-      if (folder === "INBOX") {
-        const categoryResponse = await EmailCategorization(parsed.text);
-        predictedCategory = categoryResponse.predicted_label;
+        // categorize ONLY INBOX during initial sync
+        if (folder === "INBOX") {
+          const categoryResponse = await EmailCategorization(parsed.text);
+          predictedCategory = categoryResponse.predicted_label;
 
-        if (predictedCategory === "Interested") {
-          await sendSlackNotification(parsed);
-          await sendWebhook(parsed);
+          if (predictedCategory === "Interested") {
+            await sendSlackNotification(parsed);
+            await sendWebhook(parsed);
+          }
         }
+        const normalizedFolder = normalizeFolder(client.mailbox.path);
+
+        await StoreEmail(parsed, msg.uid, client, predictedCategory, normalizedFolder);
+
+        console.log(`Stored email (${folder}): ${parsed.subject}`);
       }
-      const normalizedFolder = normalizeFolder(client.mailbox.path);
-
-      await StoreEmail(parsed, msg.uid, client, predictedCategory, normalizedFolder);
-
-      console.log(`Stored email (${folder}): ${parsed.subject}`);
     }
+
   }
 
   console.log("Initial sync done.");
