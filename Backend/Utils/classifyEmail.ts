@@ -2,7 +2,6 @@ import axios from "axios";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 
-// Allowed labels
 const ALLOWED_LABELS = [
     "Interested",
     "Meeting Booked",
@@ -11,9 +10,7 @@ const ALLOWED_LABELS = [
     "Out of Office"
 ];
 
-
-// Classify email content into one of 5 categories using Gemini.
-export async function classifyEmail(content) {
+export async function classifyEmail(content: string): Promise<string> {
     try {
         const prompt = `
 Classify the following email into **only one** of the labels below:
@@ -51,10 +48,8 @@ Rules:
         const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
         console.log("Gemini Output:", text);
 
-        // Normalize label
         const normalized = text.replace(/[^a-zA-Z ]/g, "").trim();
 
-        //  Match exact allowed label
         const matched = ALLOWED_LABELS.find(
             (label) => label.toLowerCase() === normalized.toLowerCase()
         );
@@ -66,7 +61,7 @@ Rules:
 
         return matched;
 
-    } catch (err) {
+    } catch (err: any) {
         console.error("Gemini Error:", err.response?.data || err.message);
         return "Not Interested";
     }

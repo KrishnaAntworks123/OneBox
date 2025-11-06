@@ -21,16 +21,36 @@ export default function App() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">📧 Email Dashboard</h1>
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100">
+      {/* Header Section */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-slate-900">Email Dashboard</h1>
+          </div>
+          <p className="text-slate-600">Manage and organize all your emails in one place</p>
+        </div>
+      </div>
 
-      <Filters setEmails={setEmails} setLoading={setLoading} />
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <Filters setEmails={setEmails} setLoading={setLoading} />
 
-      {loading ? (
-        <p className="text-gray-500 mt-4">Loading...</p>
-      ) : (
-        <EmailList emails={emails} />
-      )}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : emails.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-500 text-lg">No emails found</p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-slate-600 mb-4">{emails.length} email{emails.length !== 1 ? 's' : ''} found</p>
+            <EmailList emails={emails} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

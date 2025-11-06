@@ -20,6 +20,7 @@ export default function Filters({ setEmails, setLoading }: FiltersProps) {
 
     const handleFolder = async (folder: string) => {
         if (!folder) return;
+        setSearch("")
         setLoading(true);
         const data = await fetchByFolder(folder);
         setEmails(data.emails);
@@ -49,6 +50,7 @@ export default function Filters({ setEmails, setLoading }: FiltersProps) {
 
     const handleAccount = async (account: string) => {
         if (!account) return;
+        setSearch("")
         setLoading(true);
         const data = await fetchByAccount(account);
         setEmails(data.data);
@@ -56,50 +58,54 @@ export default function Filters({ setEmails, setLoading }: FiltersProps) {
     };
 
     return (
-        <div className="flex gap-3 items-center mb-4">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-6 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                {/* 🔍 Search */}
+                <div className="flex-1 flex gap-2 min-w-0">
+                    <input
+                        type="text"
+                        placeholder="Search emails..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        className="flex-1 min-w-0 border border-slate-300 rounded-lg px-4 py-2 text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    />
+                    <button
+                        onClick={handleSearch}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition whitespace-nowrap"
+                    >
+                        Search
+                    </button>
+                </div>
 
-            {/* 🔍 Search */}
-            <input
-                type="text"
-                placeholder="Search emails..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border rounded px-3 py-1"
-            />
-            <button
-                onClick={handleSearch}
-                className="bg-blue-500 text-white px-3 py-1 rounded"
-            >
-                Search
-            </button>
+                {/* Folder Filters */}
+                <select
+                    onChange={(e) => handleFolder(e.target.value)}
+                    className="border border-slate-300 px-4 py-2 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer"
+                >
+                    <option value="">All Folders</option>
+                    <option value="INBOX">Inbox</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Spam">Spam</option>
+                </select>
 
-            {/* 📁 Folder Filters */}
-            <select
-                onChange={(e) => handleFolder(e.target.value)}
-                className="border px-2 py-1 rounded"
-            >
-                <option value="">Folder</option>
-                <option value="INBOX">INBOX</option>
-                <option value="Sent">Sent</option>
-                <option value="Spam">Spam</option>
-            </select>
-
-            {/* 👤 Account Filter */}
-            <select
-                onChange={(e) => handleAccount(e.target.value)}
-                className="border px-2 py-1 rounded"
-            >
-                <option value="">Account</option>
-                {accounts.length === 0 ? (
-                    <option value="">No accounts</option>
-                ) : (
-                    accounts.map((acc) => (
-                        <option value={acc} key={acc}>
-                            {acc}
-                        </option>
-                    ))
-                )}
-            </select>
+                {/* 👤 Account Filter */}
+                <select
+                    onChange={(e) => handleAccount(e.target.value)}
+                    className="border border-slate-300 px-4 py-2 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer"
+                >
+                    <option value="">All Accounts</option>
+                    {accounts.length === 0 ? (
+                        <option value="" disabled>No accounts available</option>
+                    ) : (
+                        accounts.map((acc) => (
+                            <option value={acc} key={acc}>
+                                {acc}
+                            </option>
+                        ))
+                    )}
+                </select>
+            </div>
         </div>
     );
 }

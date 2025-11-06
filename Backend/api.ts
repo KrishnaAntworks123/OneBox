@@ -1,5 +1,5 @@
 import express from 'express';
-import router from './routes/route.js';
+import router, { checkEsConnection } from './routes/route';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -13,7 +13,9 @@ const API_PORT = process.env.API_PORT || 3001;
 app.use(cors());
 app.use("/", router);
 
-
-app.listen(API_PORT, () => {
-    console.log(`Email API server running on http://localhost:${API_PORT}`);
-});
+(async () => {
+    await checkEsConnection();
+    app.listen(API_PORT, () => {
+        console.log(`Email API server running on http://localhost:${API_PORT}`);
+    });
+})();

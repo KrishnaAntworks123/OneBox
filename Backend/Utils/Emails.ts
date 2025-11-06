@@ -1,6 +1,6 @@
-import { indexEmail } from "../elasticSearch/index.js";
+import { indexEmail } from "../elasticSearch/index";
 
-export async function StoreEmail(parsed, seq, client, predictedCategory, normalizedFolder) {
+export async function StoreEmail(parsed: any, seq: any, client: any, predictedCategory: string, normalizedFolder?: string) {
     const emailDoc = {
         messageId: parsed.messageId || String(seq),
         subject: parsed.subject || "",
@@ -14,12 +14,11 @@ export async function StoreEmail(parsed, seq, client, predictedCategory, normali
         category: predictedCategory || "uncategorized"
     };
 
-    // Index the new email
     await indexEmail(emailDoc);
 }
 
-export function normalizeFolder(folder) {
-    const map = {
+export function normalizeFolder(folder: string | undefined) {
+    const map: Record<string, string> = {
         "INBOX": "INBOX",
         "[Gmail]/Sent Mail": "Sent",
         "[Gmail]/Drafts": "Drafts",
@@ -28,5 +27,6 @@ export function normalizeFolder(folder) {
         "[Gmail]/Bin": "Trash",
     };
 
+    if (!folder) return "INBOX";
     return map[folder] || folder;
 }

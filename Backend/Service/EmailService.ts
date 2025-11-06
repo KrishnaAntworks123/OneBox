@@ -1,7 +1,7 @@
-import { esClient } from "../elasticSearch/index.js";
-import { searchEmailsByAccount } from "../elasticSearch/emailQueries.js";
+import { esClient } from "../elasticSearch/index";
+import { searchEmailsES } from "../elasticSearch/emailQueries";
 
-export async function getEmailsByFolder(folder, from = 0, size = 50) {
+export async function getEmailsByFolder(folder: string, from = 0, size = 50) {
     const response = await esClient.search({
         index: "emails",
         from,
@@ -14,24 +14,21 @@ export async function getEmailsByFolder(folder, from = 0, size = 50) {
         }
     });
 
-    // Format results
-    return response.hits.hits.map(hit => ({
+    return response.hits.hits.map((hit: any) => ({
         id: hit._id,
         ...hit._source
     }));
 }
 
 
-import { searchEmailsES } from "../elasticSearch/emailQueries.js";
-
-export async function getEmailsService(queryParams) {
+export async function getEmailsService(queryParams: any) {
     const { search, folder, account, category, page = 1, limit = 20 } = queryParams;
 
-    const pageNum = parseInt(page, 50);
-    const limitNum = parseInt(limit, 50);
+    const pageNum = parseInt(page as any, 10) || 1;
+    const limitNum = parseInt(limit as any, 10) || 20;
     const from = (pageNum - 1) * limitNum;
 
-    const queryBody = {
+    const queryBody: any = {
         from,
         size: limitNum,
         sort: [{ date: { order: "desc" } }],
@@ -43,28 +40,24 @@ export async function getEmailsService(queryParams) {
         }
     };
 
-    // Folder filter
     if (folder) {
         queryBody.query.bool.filter.push({
             term: { "folder.keyword": folder }
         });
     }
 
-    // Account filter
     if (account) {
         queryBody.query.bool.filter.push({
             term: { "account.keyword": account }
         });
     }
 
-    // Category filter
     if (category) {
         queryBody.query.bool.filter.push({
             term: { "category.keyword": category }
         });
     }
 
-    // Search
     const searchTerm = search?.trim();
     if (searchTerm) {
         queryBody.query.bool.must.push({
@@ -82,15 +75,13 @@ export async function getEmailsService(queryParams) {
         total,
         page: pageNum,
         limit: limitNum,
-        totalPages: Math.ceil(total / limitNum),
+        totalPages: Math.ceil(Number(total) / limitNum),
         data: emails
     };
 }
 
 
-
-
-export async function getEmailsByAccountService(accountParam, queryParams) {
+export async function getEmailsByAccountService(accountParam: string, queryParams: any) {
 
     if (!accountParam || accountParam.trim() === "") {
         throw new Error("Account parameter is required");
@@ -100,17 +91,17 @@ export async function getEmailsByAccountService(accountParam, queryParams) {
 
     const { page = 1, limit = 20 } = queryParams;
 
-    const pageNum = parseInt(page, 50);
-    const limitNum = parseInt(limit, 50);
+    const pageNum = parseInt(page as any, 10) || 1;
+    const limitNum = parseInt(limit as any, 10) || 20;
     const from = (pageNum - 1) * limitNum;
 
-    const { total, emails } = await searchEmailsByAccount(account, from, limitNum);
+    const { total, emails } = await (await import("../elasticSearch/emailQueries")).searchEmailsByAccount(account, from, limitNum);
 
     return {
         total,
         page: pageNum,
         limit: limitNum,
-        totalPages: Math.ceil(total / limitNum),
+        totalPages: Math.ceil(Number(total) / limitNum),
         data: emails
     };
 }

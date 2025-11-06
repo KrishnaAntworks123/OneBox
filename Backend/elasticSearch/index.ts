@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
 export const esIndex = "emails";
 
 export const esClient = new Client({
@@ -13,7 +12,7 @@ export const esClient = new Client({
 export async function setupElasticsearch() {
     try {
         const existsResp = await esClient.indices.exists({ index: esIndex });
-        const exists = typeof existsResp === "boolean" ? existsResp : existsResp.body;
+        const exists = typeof existsResp === "boolean" ? existsResp : (existsResp as any).body;
 
         if (!exists) {
             console.log(`Creating Elasticsearch index: ${esIndex}`);
@@ -44,7 +43,7 @@ export async function setupElasticsearch() {
     }
 }
 
-export async function indexEmail(emailData) {
+export async function indexEmail(emailData: any) {
     try {
         await esClient.index({
             index: esIndex,
@@ -52,7 +51,7 @@ export async function indexEmail(emailData) {
             body: emailData,
             refresh: "true",
         });
-    } catch (err) {
+    } catch (err: any) {
         console.error("Elasticsearch indexing error:", err);
     }
 }
