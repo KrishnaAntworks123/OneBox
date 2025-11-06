@@ -27,8 +27,8 @@ import { searchEmailsES } from "../elasticSearch/emailQueries.js";
 export async function getEmailsService(queryParams) {
     const { search, folder, account, category, page = 1, limit = 20 } = queryParams;
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = parseInt(page, 50);
+    const limitNum = parseInt(limit, 50);
     const from = (pageNum - 1) * limitNum;
 
     const queryBody = {
@@ -100,8 +100,8 @@ export async function getEmailsByAccountService(accountParam, queryParams) {
 
     const { page = 1, limit = 20 } = queryParams;
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = parseInt(page, 50);
+    const limitNum = parseInt(limit, 50);
     const from = (pageNum - 1) * limitNum;
 
     const { total, emails } = await searchEmailsByAccount(account, from, limitNum);

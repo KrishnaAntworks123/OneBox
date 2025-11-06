@@ -63,7 +63,7 @@ async function syncEmails() {
   console.log("Connected to IMAP");
 
   const since = new Date();
-  since.setDate(since.getDate() - 1);
+  since.setDate(since.getDate() - 2);
 
   console.log("Fetching mailbox list...");
   const mailboxes = await client.list();
@@ -77,7 +77,8 @@ async function syncEmails() {
       console.log(`Skipping unselectable folder: ${folder}`);
       continue;
     }
-    if (folder === "INBOX" || folder === "[Gmail]/Sent" || folder === "[Gmail]/Drafts" || folder === "[Gmail]/Trash" || folder === "[Gmail]/Drafts") {
+    console.log(`Processing folder: ${folder}`);
+    if (folder === "Sent" || folder === "[Gmail]/Sent Mail" || folder === "[Gmail]/Drafts" || folder === "[Gmail]/Trash" || folder === "[Gmail]/Drafts") {
       console.log(`Syncing folder: ${folder}`);
       await client.mailboxOpen(folder);
 
