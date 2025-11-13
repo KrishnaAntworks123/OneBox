@@ -1,7 +1,8 @@
 import express from "express";
 import { getUniqueAccountsService } from "../elasticSearch/emailQueries";
-import { getEmailsByFolder, getEmailsService } from "../Service/EmailService";
+import { getEmailsByFolder, getEmailsService, getSingleEmailById } from "../Service/EmailService";
 import { getEmailsByAccountService } from "../Service/EmailService";
+import getReply from "../Service/SuggestReply";
 
 export async function getEmailsController(req: express.Request, res: express.Response) {
     try {
@@ -63,5 +64,19 @@ export async function getUniqueAccountsController(req: express.Request, res: exp
     } catch (err: any) {
         console.error("Error fetching accounts", err);
         res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+
+
+export async function getEmailByIdController(req: express.Request, res: express.Response) {
+    try {
+        const emailId = req.params.id;
+        const email: any = await getSingleEmailById(emailId);
+        const reply = await getReply(email.text);
+        email.suggestedReply = reply;
+        res.json(email);
+    } catch (err: any) {
+        console.error("Error fetching email by ID:", err);
+        res.status(500).json({ error: "Failed to fetch email by ID" });
     }
 }

@@ -119,7 +119,7 @@ async function syncEmails() {
     console.log("Initial sync done.");
 
     await client.mailboxOpen("INBOX");
-    console.log("📬 Waiting for new INBOX emails... (IDLE)");
+    console.log(" Waiting for new INBOX emails... (IDLE)");
 
     await new Promise(() => { });
 }

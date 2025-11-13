@@ -1,5 +1,5 @@
 import { esClient } from "../elasticSearch/index";
-import { searchEmailsES } from "../elasticSearch/emailQueries";
+import { searchEmailsByAccount, searchEmailsES } from "../elasticSearch/emailQueries";
 
 export async function getEmailsByFolder(folder: string, from = 0, size = 50) {
     const response = await esClient.search({
@@ -80,6 +80,27 @@ export async function getEmailsService(queryParams: any) {
     };
 }
 
+export async function getSingleEmailById(id: string) {
+    if (!id || id.trim() === "") {
+        throw new Error("Email ID is required");
+    }
+
+    const emailId = id.trim();
+
+    const response = await esClient.get({
+        index: "emails",
+        id: emailId
+    });
+
+    if (!response.found) {
+        throw new Error(`Email with ID ${emailId} not found`);
+    }
+
+    return {
+        id: response._id,
+        ...(response._source as Record<string, any>)
+    };
+}
 
 export async function getEmailsByAccountService(accountParam: string, queryParams: any) {
 
@@ -95,7 +116,7 @@ export async function getEmailsByAccountService(accountParam: string, queryParam
     const limitNum = parseInt(limit as any, 10) || 20;
     const from = (pageNum - 1) * limitNum;
 
-    const { total, emails } = await (await import("../elasticSearch/emailQueries")).searchEmailsByAccount(account, from, limitNum);
+    const { total, emails } = await searchEmailsByAccount(account, from, limitNum);
 
     return {
         total,

@@ -3,15 +3,10 @@ import { Document } from "@langchain/core/documents";
 import { CohereEmbeddings } from "@langchain/cohere";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import dotenv from "dotenv";
+import { DocumentData } from "../Utils/DocumentData";
 
 dotenv.config();
 
-const jobHuntingDocs = [
-    new Document({
-        pageContent: "I am applying for a job position. If a lead or recruiter is interested in scheduling an interview, I should share my meeting booking link which is: https://cal.com/example",
-        metadata: { source: "job_policy", type: "instruction" }
-    }),
-];
 
 export default async function addData() {
     console.log("Connecting to models and DB...");
@@ -28,9 +23,7 @@ export default async function addData() {
     });
 
 
-    await vectorStore.addDocuments(jobHuntingDocs);
-
-    console.log("✅ New 'job application' instruction added to the vector store.");
+    await vectorStore.addDocuments(DocumentData);
 
     const results = await vectorStore.similaritySearch("interview", 1);
     console.log("Test search for 'interview':", results);
