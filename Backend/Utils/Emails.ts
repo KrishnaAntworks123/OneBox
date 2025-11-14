@@ -1,7 +1,8 @@
 import { indexEmail } from "../elasticSearch/index";
+import { EmailDocument } from "./types";
 
 export async function StoreEmail(parsed: any, seq: any, client: any, predictedCategory: string, normalizedFolder?: string) {
-    const emailDoc = {
+    const emailDoc:EmailDocument = {
         messageId: parsed.messageId || String(seq),
         subject: parsed.subject || "",
         sender: parsed.from?.text || "",

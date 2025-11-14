@@ -1,5 +1,7 @@
 import { esClient } from "../elasticSearch/index";
 import { searchEmailsByAccount, searchEmailsES } from "../elasticSearch/emailQueries";
+import getReply from "./SuggestReply";
+import { EmailDocument, EmailSingleGetResponse, GetSingleEmailByIdResponse } from "../Utils/types";
 
 export async function getEmailsByFolder(folder: string, from = 0, size = 50) {
     const response = await esClient.search({
@@ -80,25 +82,28 @@ export async function getEmailsService(queryParams: any) {
     };
 }
 
-export async function getSingleEmailById(id: string) {
+export async function getSingleEmailById(id: string):Promise<GetSingleEmailByIdResponse>{
     if (!id || id.trim() === "") {
         throw new Error("Email ID is required");
     }
 
     const emailId = id.trim();
 
-    const response = await esClient.get({
+    const response = await esClient.get<EmailDocument>({
         index: "emails",
         id: emailId
-    });
+    } )as EmailSingleGetResponse;
 
     if (!response.found) {
         throw new Error(`Email with ID ${emailId} not found`);
     }
+    const reply= await getReply(response._source.text);
+    const source = response._source as EmailDocument;
 
     return {
-        id: response._id,
-        ...(response._source as Record<string, any>)
+        id: response._id, 
+        reply:reply,
+        ...source
     };
 }
 
