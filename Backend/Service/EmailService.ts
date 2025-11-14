@@ -97,12 +97,10 @@ export async function getSingleEmailById(id: string):Promise<GetSingleEmailByIdR
     if (!response.found) {
         throw new Error(`Email with ID ${emailId} not found`);
     }
-    const reply= await getReply(response._source.text);
     const source = response._source as EmailDocument;
 
     return {
         id: response._id, 
-        reply:reply,
         ...source
     };
 }

@@ -19,5 +19,4 @@ export interface EmailSingleGetResponse {
 
 export interface GetSingleEmailByIdResponse extends EmailDocument{
     id: string;
-    reply: string;
 }

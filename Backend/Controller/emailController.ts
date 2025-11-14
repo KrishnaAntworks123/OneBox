@@ -3,6 +3,7 @@ import { getUniqueAccountsService } from "../elasticSearch/emailQueries";
 import { getEmailsByFolder, getEmailsService, getSingleEmailById } from "../Service/EmailService";
 import { getEmailsByAccountService } from "../Service/EmailService";
 import getReply from "../Service/SuggestReply";
+import { SummarizeMail } from "../Utils/Summarize";
 
 export async function getEmailsController(req: express.Request, res: express.Response) {
     try {
@@ -67,6 +68,18 @@ export async function getUniqueAccountsController(req: express.Request, res: exp
     }
 }
 
+
+export async function getEmailSummaryController(req: express.Request, res: express.Response) {
+    try {
+        const emailId = req.params.id;
+        const email: any = await getSingleEmailById(emailId);
+        const summaryText = await SummarizeMail(email.text);
+        res.json(summaryText);
+    } catch (err: any) {
+        console.error("Error fetching email by ID:", err);
+        res.status(500).json({ error: "Failed to fetch email by ID" });
+    }
+}
 
 export async function getEmailByIdController(req: express.Request, res: express.Response) {
     try {

@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { esClient } from '../elasticSearch/index';
-import { getEmailByIdController, getEmailsByAccountController, getEmailsByFolderController, getEmailsController, getUniqueAccountsController } from "../Controller/emailController";
+import { getEmailByIdController, getEmailsByAccountController, getEmailsByFolderController, getEmailsController, getEmailSummaryController, getUniqueAccountsController } from "../Controller/emailController";
 
 dotenv.config();
 
@@ -22,6 +22,8 @@ async function checkEsConnection() {
 router.get("/emails", getEmailsController);
 
 router.get("/email/:id", getEmailByIdController)
+
+router.get("/email/summary/:id", getEmailSummaryController)
 
 router.get('/folder/:folder', getEmailsByFolderController);
 

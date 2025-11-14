@@ -7,8 +7,10 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "api": "node dist/api.js",
+    "sum": "node dist/Utils/Summarize.js",
     "dev": "tsc-watch --onSuccess \"npm run start\"",
     "dev:api": "tsc-watch --onSuccess \"npm run api\"",
+    "dev:sum": "tsc-watch --onSuccess \"npm run sum\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
