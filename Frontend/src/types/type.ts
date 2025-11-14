@@ -4,6 +4,7 @@ export interface Email {
     from: string;
     snippet: string;
     category?: string;
+    reply?: string;
 }
 
 export interface FetchEmailResponse {
