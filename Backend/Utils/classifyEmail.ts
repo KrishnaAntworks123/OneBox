@@ -1,19 +1,25 @@
-import axios from "axios";
-
-const API_KEY = process.env.GEMINI_API_KEY;
+import { ChatCohere } from "@langchain/cohere";
+import dotenv from "dotenv";
+dotenv.config();
 
 const ALLOWED_LABELS = [
-    "Interested",
-    "Meeting Booked",
-    "Not Interested",
-    "Spam",
-    "Out of Office"
+  "Interested",
+  "Meeting Booked",
+  "Not Interested",
+  "Spam",
+  "Out of Office",
 ];
 
+const cohereClassifier = new ChatCohere({
+  model: "command-a-03-2025",
+  temperature: 0,
+  apiKey: process.env.COHERE_API_KEY,
+});
+
 export async function classifyEmail(content: string): Promise<string> {
-    try {
-        const prompt = `
-Classify the following email into **only one** of the labels below:
+  try {
+    const prompt = `
+Classify the following email into **only ONE** of the labels below:
 
 - Interested
 - Meeting Booked
@@ -21,48 +27,47 @@ Classify the following email into **only one** of the labels below:
 - Spam
 - Out of Office
 
-Email Content:
+Email:
 "${content}"
 
-Rules:
-- Return only the label, no explanation.
-- If unsure, choose the closest meaningful category.
+RULES:
+- Output ONLY the label.
+- No explanations, no extra text.
+- If unsure, pick the closest meaningful category.
     `;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    const completion = await cohereClassifier.invoke([
+      { role: "user", content: prompt },
+    ]);
 
-        const body = {
-            contents: [
-                {
-                    parts: [
-                        { text: prompt }
-                    ]
-                }
-            ]
-        };
+    console.log("Cohere Classifier Output:", completion);
 
-        const response = await axios.post(url, body, {
-            headers: { "Content-Type": "application/json" }
-        });
+    const raw = completion.content;
 
-        const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-        console.log("Gemini Output:", text);
+    let text =
+      typeof raw === "string"
+        ? raw.trim()
+        : raw
+            .map((b: any) => b.text ?? String(b))
+            .join("")
+            .trim();    
 
-        const normalized = text.replace(/[^a-zA-Z ]/g, "").trim();
+    //Clean the text
+    const normalized = text.replace(/[^a-zA-Z ]/g, "").trim();
 
-        const matched = ALLOWED_LABELS.find(
-            (label) => label.toLowerCase() === normalized.toLowerCase()
-        );
+    //Only allow specific labels
+    const matched = ALLOWED_LABELS.find(
+      (l) => l.toLowerCase() === normalized.toLowerCase()
+    );
 
-        if (!matched) {
-            console.warn("Unknown category from Gemini:", normalized);
-            return "Not Interested";
-        }
-
-        return matched;
-
-    } catch (err: any) {
-        console.error("Gemini Error:", err.response?.data || err.message);
-        return "Not Interested";
+    if (!matched) {
+      console.warn("Unknown label from Cohere:", normalized);
+      return "Not Interested";
     }
+
+    return matched;
+  } catch (err) {
+    console.error("Cohere Classifier Error:", err);
+    return "Not Interested";
+  }
 }
